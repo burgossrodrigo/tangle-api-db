@@ -6,6 +6,8 @@ const json = bodyParse.json
 const app = express();
 const router = express.Router()
 
+require('dotenv').config()
+
 
 const { poolCachedMiddleware, tokenCachedMiddleware, tvlCachedMiddleware, feeCachedMiddleware, liquidityTxCachedMiddleware, swapTxCachedMiddleware } = require('./cache/cache')
 const { poolController, tokenController, tvlController, feeControler, liquidityTxController, swapTxController } = require('./controller/tangle.controller')
