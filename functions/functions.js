@@ -1,6 +1,6 @@
 const ethers  = require("ethers")
 
-const provider = new ethers.JsonRpcProvider('https://smart-quick-wave.discover.quiknode.pro/e3c1d5f4c51dae28ffddcd947415045bfa0f8f7d/')
+const provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_RPC)
 
 
 const { MongoClient, ServerApiVersion } = require('mongodb')
@@ -11,12 +11,12 @@ const POOL_ABI = require('../artifacts/POOLV3.json')
 const FACTORY_ABI = require('../artifacts/FACTORYV3.json')
 const ERC20_ABI = require('../artifacts/ERC20.json')
 
-const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+const WETH_ADDRESS = process.env.WETH_ADDRESS
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 const queryTVL = async (limit) => {
     try {
-        const collection = await mongoClient.db("tangle-db-shimmer").collection("tvl")
+        const collection = await mongoClient.db("tangle-db").collection("tvl")
         const documents = await collection.find({})
         .sort({ time: -1 }) // Sort by blockNumber in descending order
         .limit(limit) // Limit to the first 10 results
@@ -37,7 +37,7 @@ const queryTVL = async (limit) => {
 
 const queryFee = async () => {
     try {
-        const collection = await mongoClient.db("tangle-db-shimmer").collection("fees-generated")
+        const collection = await mongoClient.db("tangle-db").collection("fees-generated")
         const documents = await collection.find({})
         .toArray()
         let docArr = []
@@ -56,7 +56,7 @@ const queryFee = async () => {
 
 const queryLiquidityTransactions = async (limit) => {
     try {
-        const collection = await mongoClient.db("tangle-db-shimmer").collection("liquidity-transactions")
+        const collection = await mongoClient.db("tangle-db").collection("liquidity-transactions")
         const documents = await collection.find({})
         .sort({ block: -1 }) // Sort by blockNumber in descending order
         .limit(limit) // Limit to the first 10 results
@@ -85,7 +85,7 @@ const queryLiquidityTransactions = async (limit) => {
 
 const querySwapTransactions = async (limit) => {
     try {
-        const collection = await mongoClient.db("tangle-db-shimmer").collection("swap-transactions")
+        const collection = await mongoClient.db("tangle-db").collection("swap-transactions")
         const documents = await collection.find({})
         .sort({ block: -1 }) // Sort by blockNumber in descending order
         .limit(limit) // Limit to the first 10 results
@@ -112,7 +112,7 @@ const querySwapTransactions = async (limit) => {
 
 const queryPools = async (limit) => {
     try {
-        const collection = await mongoClient.db("tangle-db-shimmer").collection("pools")
+        const collection = await mongoClient.db("tangle-db").collection("pools")
         if(limit !== undefined){
             const documents = await collection.find({})
             .sort({ time: 1 }) // Sort by blockNumber in descending order
@@ -132,7 +132,7 @@ const getWethPriceAndLiquidity = async (address) => {
     const feesArr = [3000, 1000, 10000]
     let poolsArr = []
     try {
-            const factory = new ethers.Contract('0x1F98431c8aD98523631AE4a59f267346ea31F984', FACTORY_ABI, provider)
+            const factory = new ethers.Contract(process.env.FACTORY_ADDRESS, FACTORY_ABI, provider)
             for(let i = 0; i < feesArr.length; i++){
                 const fee = feesArr[i]
                 const poolAddress = await factory.getPool(address, WETH_ADDRESS, fee)

@@ -1,4 +1,4 @@
-const { queryPools, _tokenSymbol, timeOut, tokenBalance} = require('../functions/functions')
+const { queryPools, timeOut, tokenBalance} = require('../functions/functions')
 const dayjs = require('dayjs')
 
 
