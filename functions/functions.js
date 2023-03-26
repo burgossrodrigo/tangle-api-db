@@ -58,7 +58,7 @@ const queryLiquidityTransactions = async (limit) => {
     try {
         const collection = await mongoClient.db("tangle-db").collection("liquidity-transactions")
         const documents = await collection.find({})
-        .sort({ block: -1 }) // Sort by blockNumber in descending order
+        .sort({ block: 1 }) // Sort by blockNumber in descending order
         .limit(limit) // Limit to the first 10 results
         .toArray()
         let docArr = []
@@ -73,7 +73,7 @@ const queryLiquidityTransactions = async (limit) => {
                     symbol1: data.symbol1,
                     amount0: data.amount0,
                     amount1: data.amount1,
-                    time: data._id.getTimestamp(),
+                    time: data.time,
                     blockNumber: data.block
                 })                        
         })
@@ -88,7 +88,7 @@ const querySwapTransactions = async (limit) => {
     try {
         const collection = await mongoClient.db("tangle-db").collection("swap-transactions")
         const documents = await collection.find({})
-        .sort({ block: -1 }) // Sort by blockNumber in descending order
+        .sort({ block: 1 }) // Sort by blockNumber in descending order
         .limit(limit) // Limit to the first 10 results
         .toArray()
         let docArr = []
@@ -102,7 +102,7 @@ const querySwapTransactions = async (limit) => {
                     amount0: data.amount0,
                     amount1: data.amount1,
                     value: data.value,
-                    time: data._id.getTimestamp(),
+                    time: data.time,
                     blockNumber: data.block
                 })                        
         })
