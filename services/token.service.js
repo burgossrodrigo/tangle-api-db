@@ -1,4 +1,4 @@
-const { getWethPriceAndLiquidity, _tokenName, _tokenSymbol, timeOut, queryPools } = require('../functions/functions')
+const { getWethPriceAndLiquidity, timeOut, queryPools } = require('../functions/functions')
 const dayjs = require('dayjs')
 
 
@@ -11,24 +11,31 @@ const tokenService = async () => {
             const interval = ((poolRes.length * 9) * 40 ) + ((poolRes.length * 40 )* 2) * 3
         
             let tokenArr = []
-            for(let i = 0; i < poolRes.length; i++){
-                const result = poolRes[i]
+            for(const pool of poolRes){
                 let _tokenAddress
-                if(result.token1 === WETH_ADDRESS){
-                    _tokenAddress = result.token0
+                let _tokenDecimals
+                if(pool.token1 === WETH_ADDRESS){
+                    _tokenAddress = pool.token0
+                    _tokenDecimals = pool.decimals0
                 }
                 else
-                if(result.token0 === WETH_ADDRESS){
-                    _tokenAddress = result.token1
+                if(pool.token0 === WETH_ADDRESS){
+                    _tokenAddress = pool.token1
+                    _tokenDecimals = pool.decimals1
+                }
+                else
+                if(pool.token0 !== WETH_ADDRESS && pool.token0 !== WETH_ADDRESS){
+                    _tokenAddress = pool.token0
+                    _tokenDecimals = pool.decimals0
                 }
                 console.log(_tokenAddress, 'tokenAddress')
-                if(_tokenAddress !== undefined){
-                        await Promise.all([getWethPriceAndLiquidity(_tokenAddress), timeOut(interval)]).then((promises) => {
+                if(_tokenAddress !== undefined && _tokenDecimals !== undefined){
+                        await Promise.all([getWethPriceAndLiquidity(_tokenAddress, _tokenDecimals), timeOut(interval)]).then((promises) => {
                             console.log(promises, 'promises')
                             const wethPriceAndLiquidity = promises[0]
-                                    const priceArr = result.price
-                                    const tvlArr = result.tvl || []
-                                    const liquidityArr = result.liquidity || []
+                                    const priceArr = pool.price
+                                    const tvlArr = pool.tvl || []
+                                    const liquidityArr = pool.liquidity || []
                                     const lastPrice = () => {
                                         if(wethPriceAndLiquidity?.length > 0){
                                             const result = wethPriceAndLiquidity[0]?.price ?? 0
@@ -68,9 +75,9 @@ const tokenService = async () => {
                                         return volume            
                                     }
 
-                                    const _tokenName = result.token1 === WETH_ADDRESS && result.token0 !== WETH_ADDRESS ? result.name0 : result.name1
-                                    const _tokenSymbol = result.token1 === WETH_ADDRESS && result.token0 !== WETH_ADDRESS ? result.symbol0 : result.symbol1
-                                    const _tokenAdddress = result.token1 === WETH_ADDRESS && result.token0 !== WETH_ADDRESS ? result.token0 : result.token1
+                                    const _tokenName = pool.token1 === WETH_ADDRESS && pool.token0 !== WETH_ADDRESS ? pool.name0 : pool.name1
+                                    const _tokenSymbol = pool.token1 === WETH_ADDRESS && pool.token0 !== WETH_ADDRESS ? pool.symbol0 : pool.symbol1
+                                    const _tokenAdddress = pool.token1 === WETH_ADDRESS && pool.token0 !== WETH_ADDRESS ? pool.token0 : pool.token1
 
                                     if(!tokenSet.has(_tokenAdddress)){
                                         console.log('chamou')

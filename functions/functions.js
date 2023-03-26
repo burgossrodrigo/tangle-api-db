@@ -68,6 +68,7 @@ const queryLiquidityTransactions = async (limit) => {
                     eventName: data.eventName,
                     token0: data.token0Address,
                     token1: data.token1Address,
+                    value: data.value,
                     symbol0: data.symbol0,
                     symbol1: data.symbol1,
                     amount0: data.amount0,
@@ -100,6 +101,7 @@ const querySwapTransactions = async (limit) => {
                     symbol1: data.symbol1,
                     amount0: data.amount0,
                     amount1: data.amount1,
+                    value: data.value,
                     time: data._id.getTimestamp(),
                     blockNumber: data.block
                 })                        
@@ -128,26 +130,41 @@ const queryPools = async (limit) => {
     }
 }
 
-const getWethPriceAndLiquidity = async (address) => {
+const sqrtPriceToPrice = (sqrtPriceX96, token0Decimals, token1Decimals) => {
+  
+    let mathPrice = Number(sqrtPriceX96) ** 2 / 2 ** 192;
+  
+    const decimalAdjustment = 10 ** (token0Decimals - token1Decimals);
+    const price = mathPrice * decimalAdjustment;
+  
+    return price;
+  };
+
+const getWethPriceAndLiquidity = async (address, decimals) => {
     const feesArr = [3000, 1000, 10000]
     let poolsArr = []
     try {
             const factory = new ethers.Contract(process.env.FACTORY_ADDRESS, FACTORY_ABI, provider)
+            const tokenSet = new Set()
             for(let i = 0; i < feesArr.length; i++){
                 const fee = feesArr[i]
+                console.log(address, 'from getWethPriceAndLiquidity')
                 const poolAddress = await factory.getPool(address, WETH_ADDRESS, fee)
-                if(poolAddress !== ZERO_ADDRESS){
+                let wethDecimals = 18
+                if(poolAddress !== ZERO_ADDRESS && !tokenSet.has({tokenAddress: address, fee: fee})){
                     const poolContract = new ethers.Contract(poolAddress, POOL_ABI, provider)
                     const slot0 = await poolContract.slot0()
-                    const wethContract = new ethers.Contract(WETH_ADDRESS, ERC20_ABI, provider)
-                    const wethBalance = await wethContract.balanceOf(poolAddress)
-                    const price = Number(slot0.sqrtPriceX96)
+                    if(address > WETH_ADDRESS){
+                        [wethDecimals, decimals] = [decimals, wethDecimals]
+                    }
+                    const price = sqrtPriceToPrice(Number(slot0.sqrtPriceX96), decimals, wethDecimals)
     
                     poolsArr.push({
                         poolAddress: poolAddress,
                         price: price,
-                        wethBalance: Number(wethBalance)
                     })
+
+                    tokenSet.add({tokenAddress: address, fee: fee})
                 }
             }
             poolsArr.sort((a, b) => {
