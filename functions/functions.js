@@ -58,7 +58,7 @@ const queryLiquidityTransactions = async (limit) => {
     try {
         const collection = await mongoClient.db("tangle-db").collection("liquidity-transactions")
         const documents = await collection.find({})
-        .sort({ block: 1 }) // Sort by blockNumber in descending order
+        .sort({ block: -1 }) // Sort by blockNumber in descending order
         .limit(limit) // Limit to the first 10 results
         .toArray()
         let docArr = []
