@@ -174,7 +174,7 @@ const sqrtPriceToPrice = (sqrtPriceX96, token0Decimals, token1Decimals) => {
                 }
             }
             poolsArr.sort((a, b) => {
-                return b.liquidity - a.liquidity
+                return b.wethBalance - a.wethBalance
             })
             return poolsArr
     } catch (error) {
